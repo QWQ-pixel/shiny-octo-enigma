@@ -1,0 +1,48 @@
+<component name="libraryTable">
+  <library name="hadoop-2.10">
+    <CLASSES>
+      <root url="file://$USER_HOME$/hadoop-2.10.2" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="file://$USER_HOME$/hadoop-2.10.2/share/doc/hadoop/api" />
+      <root url="file://$USER_HOME$/hadoop-2.10.2/share/doc/hadoop/common/api" />
+      <root url="file://$USER_HOME$/hadoop-2.10.2/share/doc/hadoop/hadoop-auth/apidocs" />
+      <root url="file://$USER_HOME$/hadoop-2.10.2/share/doc/hadoop/hadoop-hdfs-httpfs/apidocs" />
+      <root url="file://$USER_HOME$/hadoop-2.10.2/share/doc/hadoop/hadoop-mapreduce-client/hadoop-mapreduce-client-app/apidocs" />
+      <root url="file://$USER_HOME$/hadoop-2.10.2/share/doc/hadoop/hadoop-mapreduce-client/hadoop-mapreduce-client-common/apidocs" />
+      <root url="file://$USER_HOME$/hadoop-2.10.2/share/doc/hadoop/hadoop-mapreduce-client/hadoop-mapreduce-client-core/apidocs" />
+      <root url="file://$USER_HOME$/hadoop-2.10.2/share/doc/hadoop/hadoop-mapreduce-client/hadoop-mapreduce-client-hs-plugins/apidocs" />
+      <root url="file://$USER_HOME$/hadoop-2.10.2/share/doc/hadoop/hadoop-mapreduce-client/hadoop-mapreduce-client-hs/apidocs" />
+      <root url="file://$USER_HOME$/hadoop-2.10.2/share/doc/hadoop/hadoop-mapreduce-client/hadoop-mapreduce-client-jobclient/apidocs" />
+      <root url="file://$USER_HOME$/hadoop-2.10.2/share/doc/hadoop/hadoop-mapreduce-client/hadoop-mapreduce-client-shuffle/apidocs" />
+      <root url="file://$USER_HOME$/hadoop-2.10.2/share/doc/hadoop/hadoop-project-dist/hadoop-common/api" />
+      <root url="file://$USER_HOME$/hadoop-2.10.2/share/doc/hadoop/hadoop-project-dist/hadoop-hdfs-client/api" />
+      <root url="file://$USER_HOME$/hadoop-2.10.2/share/doc/hadoop/hadoop-project-dist/hadoop-hdfs-rbf/api" />
+      <root url="file://$USER_HOME$/hadoop-2.10.2/share/doc/hadoop/hadoop-project-dist/hadoop-hdfs/api" />
+      <root url="file://$USER_HOME$/hadoop-2.10.2/share/doc/hadoop/hadoop-yarn/hadoop-yarn-api/apidocs" />
+      <root url="file://$USER_HOME$/hadoop-2.10.2/share/doc/hadoop/hadoop-yarn/hadoop-yarn-applications/hadoop-yarn-applications-distributedshell/apidocs" />
+      <root url="file://$USER_HOME$/hadoop-2.10.2/share/doc/hadoop/hadoop-yarn/hadoop-yarn-applications/hadoop-yarn-applications-unmanaged-am-launcher/apidocs" />
+      <root url="file://$USER_HOME$/hadoop-2.10.2/share/doc/hadoop/hadoop-yarn/hadoop-yarn-client/apidocs" />
+      <root url="file://$USER_HOME$/hadoop-2.10.2/share/doc/hadoop/hadoop-yarn/hadoop-yarn-common/apidocs" />
+      <root url="file://$USER_HOME$/hadoop-2.10.2/share/doc/hadoop/hadoop-yarn/hadoop-yarn-registry/apidocs" />
+      <root url="file://$USER_HOME$/hadoop-2.10.2/share/doc/hadoop/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-applicationhistoryservice/apidocs" />
+      <root url="file://$USER_HOME$/hadoop-2.10.2/share/doc/hadoop/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-common/apidocs" />
+      <root url="file://$USER_HOME$/hadoop-2.10.2/share/doc/hadoop/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-nodemanager/apidocs" />
+      <root url="file://$USER_HOME$/hadoop-2.10.2/share/doc/hadoop/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-resourcemanager/apidocs" />
+      <root url="file://$USER_HOME$/hadoop-2.10.2/share/doc/hadoop/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-router/apidocs" />
+      <root url="file://$USER_HOME$/hadoop-2.10.2/share/doc/hadoop/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-sharedcachemanager/apidocs" />
+      <root url="file://$USER_HOME$/hadoop-2.10.2/share/doc/hadoop/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-timeline-pluginstorage/apidocs" />
+      <root url="file://$USER_HOME$/hadoop-2.10.2/share/doc/hadoop/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-timelineservice-hbase/hadoop-yarn-server-timelineservice-hbase-client/apidocs" />
+      <root url="file://$USER_HOME$/hadoop-2.10.2/share/doc/hadoop/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-timelineservice-hbase/hadoop-yarn-server-timelineservice-hbase-common/apidocs" />
+      <root url="file://$USER_HOME$/hadoop-2.10.2/share/doc/hadoop/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-timelineservice-hbase/hadoop-yarn-server-timelineservice-hbase-server/hadoop-yarn-server-timelineservice-hbase-server-1/apidocs" />
+      <root url="file://$USER_HOME$/hadoop-2.10.2/share/doc/hadoop/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-timelineservice/apidocs" />
+      <root url="file://$USER_HOME$/hadoop-2.10.2/share/doc/hadoop/hadoop-yarn/hadoop-yarn-server/hadoop-yarn-server-web-proxy/apidocs" />
+      <root url="file://$USER_HOME$/hadoop-2.10.2/share/doc/hadoop/hdfs/api" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="file://$USER_HOME$/hadoop-2.10.2/share/hadoop/common/jdiff" />
+      <root url="file://$USER_HOME$/hadoop-2.10.2/share/hadoop/hdfs/jdiff" />
+      <root url="file://$USER_HOME$/hadoop-2.10.2/share/hadoop/mapreduce/jdiff" />
+    </SOURCES>
+  </library>
+</component>
