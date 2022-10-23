@@ -10,57 +10,89 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Objects;
 import java.util.Scanner;
 
 public class Main { // имена файлов не содержит пути и слеша
-    //− mkdir <имя каталога в HDFS> (создание каталога в HDFS); +
-    //− put <имя локального файла> (загрузка файла в HDFS); +
-    //− get <имя файла в HDFS> (скачивание файла из HDFS); +
-    //− append <имя локального файла> <имя файла в HDFS> (конкатенация
-    //файла в HDFS с локальным файлом); +
-    //− delete <имя файла в HDFS> (удаление файла в HDFS); +
-    //− ls (отображение содержимого текущего каталога в HDFS с разделением
-    //файлов и каталогов); +
-    //− cd <имя каталога в HDFS> (переход в другой каталог в HDFS, ".." — на
-    //уровень выше); ?
-    //− lls (отображение содержимого текущего локального каталога с
-    //разделением файлов и каталогов); +
-    //− lcd <имя локального каталога> (переход в другой локальный каталог,
-    //".." — на уровень выше). ?
+    private static Client client;
     public static void main(String[] args) {
+        // localhost 9000 NIto
         try {
-
-            Configuration conf = new Configuration (); // создаем экземпляр объекта конфигурации
-            URI uri = new URI("hdfs://localhost:9000");
-            FileSystem fs = FileSystem.get (uri, conf, "NIto"); // Получить объект файловой системы, три параметра соответственно привязаны к uri, conf, текущей учетной записи пользователя
             Scanner keyboard = new Scanner(System.in);
-            String [] com = keyboard.toString().split(" ");
-
-            switch (com[0]){
-                case "mkdir":
-                    createDir(com[1], fs);
-                case "put":
-                    uploadFile(com[1], fs);
-                case "get":
-                    getFile(com[1], com[2], fs);
-                case "append":
-                    appendFiles(com[1], com[2], fs);
-                case "delete":
-                    deleteFile(com[1], fs);
-                case "ls":
-                    getLDInfo();
-                case "cd":
-                    cd(com[1], fs);
-                case "lls":
-                    list(new Path("/"+com[1]), fs);
-                case "lcd":
-                    lcd(com[1]);
+            System.out.println("Введите через пробел сервер, порт и имя пользователя: ");
+            String input = keyboard.nextLine();
+            String[] com = input.toString().split(" ");
+            if (com.length == 3) {
+                client = new Client(com[0], com[1], com[2]);
+                System.out.println("Добро пожаловать в HDFS! Введите команду help для просмотра команд");
+                while (true) {
+                    input = keyboard.nextLine();
+                    com = input.toString().split(" ");
+                    switch (com[0]) {
+                        case "help":
+                            help();
+                            break;
+                        case "mkdir":
+                            createDir(com[1], client.getFs());
+                            break;
+                        case "put":
+                            uploadFile(com[1], client.getFs());
+                            break;
+                        case "get":
+                            getFile(com[1], com[2], client.getFs());
+                            break;
+                        case "append":
+                            appendFiles(com[1], com[2], client.getFs());
+                            break;
+                        case "delete":
+                            deleteFile(com[1], client.getFs());
+                            break;
+                        case "ls":
+                            ls(client.getHdfsDir(), client.getFs());
+                            break;
+                        case "cd":
+                            cd(com[1], client.getFs());
+                            break;
+                        case "lls":
+                            lls(client.getLocalDir());
+                            break;
+                        case "lcd":
+                            lcd(com[1]);
+                            break;
+                        case "exit":
+                            keyboard.close();
+                            System.exit(1);
+                            break;
+                        default:
+                            System.out.println("Something wrong");
+                    }
+                }
+            }else{
+                System.out.println("Нужно три параметра!");
             }
 
-        }catch (Exception e) {
-            e.printStackTrace();
+        }catch(Exception e){
+                e.printStackTrace();
         }
+    }
+    public static void help(){
+        String[] h = new String[] {"mkdir <имя каталога в HDFS> (создание каталога в HDFS)",
+                "put <имя локального файла> (загрузка файла в HDFS)",
+                "get <имя файла в HDFS> (скачивание файла из HDFS)",
+                "append <имя локального файла> <имя файла в HDFS> (конкатенация файла в HDFS с локальным файлом)",
+                "delete <имя файла в HDFS> (удаление файла в HDFS)",
+                "ls (отображение содержимого текущего каталога в HDFS с разделением файлов и каталогов)",
+                "cd <имя каталога в HDFS> (переход в другой каталог в HDFS, \"..\" — на уровень выше)",
+                "lls (отображение содержимого текущего локального каталога с разделением файлов и каталогов)",
+                "lcd <имя локального каталога> (переход в другой локальный каталог, \"..\" — на уровень выше)"};
+        System.out.println("------------------------------------------------------------------------");
+
+        for (String s : h)
+            System.out.println(s);
+
+        System.out.println("------------------------------------------------------------------------");
+
     }
     public static void appendFiles(String localFile, String hdfsFile, FileSystem fs) throws IOException { // в теории должно сработать
         FSDataInputStream in = fs.open(new Path(hdfsFile)); //грузим файл с hdfs
@@ -75,9 +107,9 @@ public class Main { // имена файлов не содержит пути и
     }
     public static void uploadFile(String filePath, FileSystem fileSystem){
         try{
-            String dstDir = "/user/NIto"; // каталог пользователя hdfs
-            Path src = new Path (filePath); // Привязать путь пути
-            Path dst = new Path(dstDir);
+            Path src = new Path(filePath); // Привязать путь пути
+            Path dst = new Path(client.getHdfsDir().toUri()); //переписать
+
 
             /*загрузить файлы*/
             fileSystem.copyFromLocalFile(src, dst); // Вызов команды copyFromLocal
@@ -124,13 +156,13 @@ public class Main { // имена файлов не содержит пути и
                 return;
             }
             fileSystem.mkdirs(path);
-
+            System.out.println(" ");
         }catch (IOException e){
             e.printStackTrace();
         }
 
     }
-    public static void list(Path path, FileSystem fileSystem) throws IOException { //выводим список файлов и каталогов new Path("/")
+    public static void ls(Path path, FileSystem fileSystem) throws IOException { //выводим список файлов и каталогов new Path("/")
         FileStatus[] fileStatuses = fileSystem.listStatus(path);
         for(FileStatus file:fileStatuses){
             if(file.isFile()){
@@ -143,8 +175,8 @@ public class Main { // имена файлов не содержит пути и
             }
         }
     }
-    public static void getLDInfo(){ // get local dir info
-        File dir = new File(System.getProperty("user.dir")); //локальная директория
+    public static void lls(Path path){ // local
+        File dir = new File(path.toUri());
         File [] files = dir.listFiles(); // получаем содержимое
         for(File item : files){ // сортируем где файлы, а где папка
             if(item.isDirectory()){
@@ -155,22 +187,80 @@ public class Main { // имена файлов не содержит пути и
             }
         }
     }
-    public static void lcd(String dir){
+    public static void lcd(String dir){ //local
+        StringBuilder newDir = new StringBuilder();
         if(Objects.equals(dir, "..")){
             //переход на каталог выше
-            System.out.println(" ");
+            String[] path = dir.split("/");
+            if(path.length == 1){
+                newDir = new StringBuilder("/" + path[0]);
+                client.setLocalDir(new Path(newDir.toString()));
+            }else {
+
+                for(int i = 0; i < path.length-1; i++)
+                    newDir.append(path[i]);
+
+                client.setLocalDir(new Path(newDir.toString()));
+            }
         }else{
-           // System.setProperty("user.dir", dir);
-            System.out.println(new File(".").getAbsolutePath());
+            newDir.append("/").append(dir);
+            client.setLocalDir(new Path(newDir.toString()));
+            //System.out.println(new File(".").getAbsolutePath());
         }
     }
     public static void cd(String dir, FileSystem fs){ //переход в другую дир hdfs
+        StringBuilder newDir = new StringBuilder();
         if(Objects.equals(dir, "..")){
             //переход на каталог выше
-            System.out.println(fs.getHomeDirectory());
+            String[] path = dir.split("/");
+            if(path.length == 1){
+                newDir = new StringBuilder("/" + path[0]);
+                client.setHdfsDir(new Path(newDir.toString()));
+            }else {
+
+                for(int i = 0; i < path.length-1; i++)
+                    newDir.append(path[i]);
+
+                client.setHdfsDir(new Path(newDir.toString()));
+            }
         }else{
-            // System.setProperty("user.dir", dir);
-            System.out.println(new File(".").getAbsolutePath());
+            newDir.append("/").append(dir);
+            client.setHdfsDir(new Path(newDir.toString()));
+            //System.out.println(new File(".").getAbsolutePath());
+        }
+    }
+    static class Client{
+        private Path localDir;
+        private Path hdfsDir;
+        private final FileSystem fs;
+        public Client(String server, String port, String name) throws URISyntaxException, IOException, InterruptedException {
+            Configuration conf = new Configuration(); // создаем экземпляр объекта конфигурации
+            StringBuilder sb = new StringBuilder("hdfs://");
+            String path = String.valueOf(sb.append(server).append(':').append(port));
+            URI uri = new URI(path);
+            fs = FileSystem.get(uri, conf, name); // Получить объект файловой системы, три параметра соответственно привязаны к uri, conf, текущей учетной записи пользователя
+            localDir = new Path("/home/"+name); // local dir
+            hdfsDir = fs.getHomeDirectory();
+        }
+
+        public Path getLocalDir() {
+            return localDir;
+        }
+
+        public void setLocalDir(Path localDir) {
+            this.localDir = localDir;
+        }
+
+        public Path getHdfsDir() {
+            return hdfsDir;
+        }
+
+        public void setHdfsDir(Path hdfsDir) {
+            this.hdfsDir = hdfsDir;
+        }
+
+        public FileSystem getFs() {
+            return fs;
         }
     }
 }
