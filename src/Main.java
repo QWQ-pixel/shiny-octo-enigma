@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.Objects;
 import java.util.Scanner;
 
@@ -26,6 +27,8 @@ public class Main { // имена файлов не содержит пути и
             if (com.length == 3) {
                 client = new Client(com[0], com[1], com[2]);
                 System.out.println("Добро пожаловать в HDFS! Введите команду help для просмотра команд");
+                System.out.println("Локальная директория: "+client.getLocalDir());
+                System.out.println("Директория HDFS: "+client.getHdfsDir());
                 while (true) {
                     input = keyboard.nextLine();
                     com = input.toString().split(" ");
@@ -107,6 +110,7 @@ public class Main { // имена файлов не содержит пути и
     }
     public static void uploadFile(String filePath, FileSystem fileSystem){
         try{
+            //надо к установленной лкальной папке аппендить имя файла
             Path src = new Path(filePath); // Привязать путь пути
             Path dst = new Path(client.getHdfsDir().toUri()); //переписать
 
@@ -127,7 +131,7 @@ public class Main { // имена файлов не содержит пути и
             if (!fs.exists(file))
                 fs.delete(file, true);
             else
-                System.out.println("File not found");
+                System.out.println("Файл не найден!");
 
         }catch(IOException e){
             e.printStackTrace();
@@ -149,7 +153,7 @@ public class Main { // имена файлов не содержит пути и
             }
         }
     }
-    public static void createDir(String nameDir, FileSystem fileSystem) {
+    public static void createDir(String nameDir, FileSystem fileSystem) { // отрабатывает норм
         Path path = new Path(nameDir);
         try{
             if (fileSystem.exists(path)) {
@@ -162,32 +166,51 @@ public class Main { // имена файлов не содержит пути и
         }
 
     }
-    public static void ls(Path path, FileSystem fileSystem) throws IOException { //выводим список файлов и каталогов new Path("/")
-        FileStatus[] fileStatuses = fileSystem.listStatus(path);
-        for(FileStatus file:fileStatuses){
-            if(file.isFile()){
-                System.out.println(file.getPath().toString()); // сюда файл
-            }else{ //сюда каталог
-                String nameDir = file.getPath().toString();
-                String[] parse = nameDir.split("/");
-                nameDir = parse[parse.length-1];
-                System.out.println(nameDir);
+
+    public static void ls(Path path, FileSystem fileSystem) throws IOException { //выводим список файлов и каталогов
+        FileStatus[] fileStatuses = fileSystem.listStatus(path); // добавить обработку пустых папок
+            for (FileStatus file : fileStatuses) {
+                if (file.isFile()) {
+                    System.out.println(file.getPath().toString()); // сюда файл
+                } else { //сюда каталог
+                    String nameDir = file.getPath().toString();
+                    String[] parse = nameDir.split("/");
+                    nameDir = parse[parse.length - 1];
+                    System.out.println(nameDir);
+                }
             }
-        }
     }
-    public static void lls(Path path){ // local
-        File dir = new File(path.toUri());
+    public static void lls(String path){ // local норм отрабатывает
+        File dir = new File(path);
         File [] files = dir.listFiles(); // получаем содержимое
-        for(File item : files){ // сортируем где файлы, а где папка
-            if(item.isDirectory()){
-                System.out.println(item.getName() + "\t folder");
+        ArrayList<String> fs = new ArrayList<>();
+        ArrayList<String> folders = new ArrayList<>();
+        assert files != null;
+        if(files.length != 0) {
+            for (File item : files) { // сортируем где файлы, а где папка
+                if (item.isDirectory()) {
+                    folders.add(item.getName());
+                } else {
+                    fs.add(item.getName());
+                }
             }
-            else{
-                System.out.println(item.getName() + "\t file");
+            if(!fs.isEmpty()) {
+                System.out.println("Файлы: ");
+
+                for (String name : fs)
+                    System.out.println(name);
             }
+            if(!folders.isEmpty()) {
+                System.out.println("Папки: ");
+
+                for (String name : folders)
+                    System.out.println(name);
+            }
+        }else{
+            System.out.println("Папка пуста!");
         }
     }
-    public static void lcd(String dir){ //local
+    public static void lcd(String dir){ //local кажется отрабатывает нормально
         StringBuilder newDir = new StringBuilder();
         if(Objects.equals(dir, "..")){
             //переход на каталог выше
@@ -226,7 +249,6 @@ public class Main { // имена файлов не содержит пути и
         }else{
             newDir.append("/").append(dir);
             client.setHdfsDir(new Path(newDir.toString()));
-            //System.out.println(new File(".").getAbsolutePath());
         }
     }
     static class Client{
@@ -243,8 +265,8 @@ public class Main { // имена файлов не содержит пути и
             hdfsDir = fs.getHomeDirectory();
         }
 
-        public Path getLocalDir() {
-            return localDir;
+        public String getLocalDir() {
+            return localDir.toString();
         }
 
         public void setLocalDir(Path localDir) {
