@@ -1,16 +1,11 @@
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FSDataInputStream;
-import org.apache.hadoop.fs.FileStatus;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.*;
 import org.apache.hadoop.io.IOUtils;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Objects;
 import java.util.Scanner;
@@ -65,6 +60,7 @@ public class Main { // имена файлов не содержит пути и
                             break;
                         case "exit":
                             keyboard.close();
+                            client.getFs().close();
                             System.exit(1);
                             break;
                         default:
@@ -88,7 +84,8 @@ public class Main { // имена файлов не содержит пути и
                 "ls (отображение содержимого текущего каталога в HDFS с разделением файлов и каталогов)",
                 "cd <имя каталога в HDFS> (переход в другой каталог в HDFS, \"..\" — на уровень выше)",
                 "lls (отображение содержимого текущего локального каталога с разделением файлов и каталогов)",
-                "lcd <имя локального каталога> (переход в другой локальный каталог, \"..\" — на уровень выше)"};
+                "lcd <имя локального каталога> (переход в другой локальный каталог, \"..\" — на уровень выше)",
+                "exit выход"};
         System.out.println("------------------------------------------------------------------------");
 
         for (String s : h)
@@ -106,22 +103,24 @@ public class Main { // имена файлов не содержит пути и
             out.write(buf, 0, b);
         in.close(); // закрываем потоки
         out.close();
+
         // add some notification that all ok
     }
-    public static void uploadFile(String filePath, FileSystem fileSystem){
+    public static void uploadFile(String filePath, FileSystem fs){ // посмотреть directory1 отказано в доступе
         try{
-            //надо к установленной лкальной папке аппендить имя файла
-            Path src = new Path(filePath); // Привязать путь пути
-            Path dst = new Path(client.getHdfsDir().toUri()); //переписать
-
-
+            String file = client.getLocalDir() +'/'+filePath;
+            Path src = new Path(file); // Привязать путь пути
+            // Path dst = new Path(client.getHdfsDir().toUri()); //переписать
+            byte[] buffer = new byte[1024];
+            FSDataOutputStream outStream = fs.create(new Path(client.getHdfsDir()+"/"+filePath));
+            outStream.write(buffer);
+            outStream.close();
             /*загрузить файлы*/
-            fileSystem.copyFromLocalFile(src, dst); // Вызов команды copyFromLocal
-            fileSystem.close (); // Закрываем объект файловой системы
+            //fileSystem.copyFromLocalFile(src, dst); // Вызов команды copyFromLocal
         }catch (Exception e){
             e.printStackTrace();
         }
-        System.out.println("File uploaded!");
+        //System.out.println("File uploaded!");
     }
     public static void deleteFile(String fileName, FileSystem fs) {
         //передаем файл в ф ю проверяем удаляем
@@ -167,8 +166,9 @@ public class Main { // имена файлов не содержит пути и
 
     }
 
-    public static void ls(Path path, FileSystem fileSystem) throws IOException { //выводим список файлов и каталогов
-        FileStatus[] fileStatuses = fileSystem.listStatus(path); // добавить обработку пустых папок
+    public static void ls(Path path, FileSystem fileSystem) { //выводим список файлов и каталогов
+        try {
+            FileStatus[] fileStatuses = fileSystem.listStatus(path); // добавить обработку пустых папок
             for (FileStatus file : fileStatuses) {
                 if (file.isFile()) {
                     System.out.println(file.getPath().toString()); // сюда файл
@@ -179,6 +179,9 @@ public class Main { // имена файлов не содержит пути и
                     System.out.println(nameDir);
                 }
             }
+        }catch (IOException e){
+            e.printStackTrace();
+        }
     }
     public static void lls(String path){ // local норм отрабатывает
         File dir = new File(path);
@@ -214,9 +217,9 @@ public class Main { // имена файлов не содержит пути и
         StringBuilder newDir = new StringBuilder();
         if(Objects.equals(dir, "..")){
             //переход на каталог выше
-            String[] path = dir.split("/");
+            String[] path = client.getLocalDir().toString().split("/");
             if(path.length == 1){
-                newDir = new StringBuilder("/" + path[0]);
+                newDir = new StringBuilder('/' + path[0]);
                 client.setLocalDir(new Path(newDir.toString()));
             }else {
 
@@ -226,18 +229,18 @@ public class Main { // имена файлов не содержит пути и
                 client.setLocalDir(new Path(newDir.toString()));
             }
         }else{
-            newDir.append("/").append(dir);
+            newDir.append('/').append(dir);
+            newDir.append('/');
             client.setLocalDir(new Path(newDir.toString()));
-            //System.out.println(new File(".").getAbsolutePath());
         }
     }
-    public static void cd(String dir, FileSystem fs){ //переход в другую дир hdfs
+    public static void cd(String dir, FileSystem fs){ //переход в другую дир hdfs зачем тут fs?
         StringBuilder newDir = new StringBuilder();
-        if(Objects.equals(dir, "..")){
+        if(Objects.equals(dir, "..")){ //перепроверить
             //переход на каталог выше
-            String[] path = dir.split("/");
+            String[] path = client.getHdfsDir().toString().split("/");
             if(path.length == 1){
-                newDir = new StringBuilder("/" + path[0]);
+                newDir = new StringBuilder('/' + path[0]);
                 client.setHdfsDir(new Path(newDir.toString()));
             }else {
 
@@ -247,7 +250,8 @@ public class Main { // имена файлов не содержит пути и
                 client.setHdfsDir(new Path(newDir.toString()));
             }
         }else{
-            newDir.append("/").append(dir);
+            newDir.append('/').append(dir);
+            newDir.append('/');
             client.setHdfsDir(new Path(newDir.toString()));
         }
     }
