@@ -36,7 +36,7 @@ public class Main {
                             uploadFile(com[1], client.getFs());
                             break;
                         case "get":
-                            getFile(com[1], client.getLocalDir(), client.getFs());
+                            getFile(com[1], client.getDownPath(), client.getFs());
                             break;
                         case "append":
                             appendFiles(com[1], com[2], client.getFs());
@@ -92,23 +92,24 @@ public class Main {
         System.out.println("------------------------------------------------------------------------");
 
     }
-    public static void appendFiles(String localFile, String hdfsFile, FileSystem fs) throws IOException { // в теории должно сработать
-        String file = client.getLocalDir()+"/"+localFile;
-        InputStream in = new FileInputStream(file);
-        FSDataOutputStream out = fs.append(new Path(client.getHdfsDir()+"/"+hdfsFile));
-
-        int b = 0;
-        byte[] buf = file.getBytes();
-        while ( (b = in.read(buf)) != -1)
-            out.write(buf, 0, b);
-        in.close(); // закрываем потоки
-        out.close();
+    public static void appendFiles(String localFile, String hdfsFile, FileSystem fs) {
+        try{
+            String file = client.getLocalDir()+"/"+localFile;
+            InputStream in = new FileInputStream(file);
+            FSDataOutputStream out = fs.append(new Path(client.getHdfsDir()+"/"+hdfsFile));
+            IOUtils.copyBytes(in, out, 4096);
+            out.close();
+            IOUtils.closeStream(in);
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
     }
     public static void uploadFile(String filePath, FileSystem fs){
         try{
             String file = client.getLocalDir() +'/'+filePath;
             InputStream in = new FileInputStream(file);
-            FSDataOutputStream out = fs.create(new Path(client.getHdfsDir()+"/"+filePath)); // берем локальный файл в который будем заливать
+            FSDataOutputStream out = fs.create(new Path(client.getHdfsDir()+"/"+filePath));
             int b = 0;
             byte[] buf = file.getBytes();
             while ( (b = in.read(buf)) >= 0)
@@ -131,7 +132,6 @@ public class Main {
         }catch(IOException e){
             e.printStackTrace();
         }
-
     }
     public static void getFile(String fileName, String localPath, FileSystem fileSystem){
         FSDataInputStream in = null;
@@ -163,7 +163,6 @@ public class Main {
             FileStatus[] fileStatuses = fileSystem.listStatus(path);
             for (FileStatus file : fileStatuses) {
                 if (file.isFile()) { // сюда файл
-
                     String[] fileName = file.getPath().toString().split("/");
                     files.add(fileName[fileName.length-1]);
                 } else { //сюда каталог
@@ -265,8 +264,11 @@ public class Main {
                     newDir.append(path[i]);
                     newDir.append('/');
                 }
-
-                System.out.println(newDir);
+                if(newDir.toString().contains("hdfs://localhost:9000")){
+                    System.out.println(newDir.toString().replace("hdfs://localhost:9000", ""));
+                }else{
+                    System.out.println(newDir);
+                }
                 client.setHdfsDir(new Path(newDir.toString()));
             }
         }else{
@@ -276,7 +278,11 @@ public class Main {
                 newDir.append('/');
 
             newDir.append(dir).append('/');
-            System.out.println(newDir);
+            if(newDir.toString().contains("hdfs://localhost:9000")){
+                System.out.println(newDir.toString().replace("hdfs://localhost:9000", ""));
+            }else{
+                System.out.println(newDir);
+            }
             client.setHdfsDir(new Path(newDir.toString()));
         }
     }
@@ -284,6 +290,7 @@ public class Main {
         private Path localDir;
         private Path hdfsDir;
         private final FileSystem fs;
+        private final String downPath;
         public Client(String server, String port, String name) throws URISyntaxException, IOException, InterruptedException {
             Configuration conf = new Configuration(); // создаем экземпляр объекта конфигурации
             StringBuilder sb = new StringBuilder("hdfs://");
@@ -291,7 +298,9 @@ public class Main {
             URI uri = new URI(path);
             fs = FileSystem.get(uri, conf, name); // Получить объект файловой системы, три параметра соответственно привязаны к uri, conf, текущей учетной записи пользователя
             localDir = new Path("/home/"+name);
-            hdfsDir = new Path("/");
+            downPath = localDir+"/Загрузки";
+            hdfsDir =  fs.getHomeDirectory();
+            //new Path("/");
         }
 
         public String getLocalDir() {
@@ -312,6 +321,10 @@ public class Main {
 
         public FileSystem getFs() {
             return fs;
+        }
+
+        public String getDownPath() {
+            return downPath;
         }
     }
 }
